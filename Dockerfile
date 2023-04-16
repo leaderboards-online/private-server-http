@@ -14,4 +14,5 @@ RUN yarn build
 
 EXPOSE $PORT
 
+RUN --mount=type=secret,id=_env,dst=/etc/secrets/.env cat /etc/secrets/.env
 CMD ["yarn", "start"]
