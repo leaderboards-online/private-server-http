@@ -48,6 +48,40 @@ leaderboardRouter.post(
   }
 );
 
+leaderboardRouter.get('/', AuthMiddleware, UserMiddleware, async (req, res) => {
+  try {
+    const leaderboards = await Leaderboard.find({ creator: req.user.id });
+    return res.json({ message: 'success', leaderboards });
+  } catch (e) {
+    return res
+      .json(500)
+      .json({ message: 'An Error occured while fetching the leaderboards' });
+  }
+});
+
+leaderboardRouter.delete(
+  '/:leaderboardId',
+  AuthMiddleware,
+  UserMiddleware,
+  validateRequest({ params: z.object({ leaderboardId: z.string() }) }),
+  LeaderboardMiddleware,
+  async (req, res) => {
+    try {
+      await Leaderboard.deleteOne({ uid: req.leaderboard.uid });
+      req.user.leaderboards.splice(
+        req.user.leaderboards.findIndex((lb) => lb._id === req.leaderboard._id),
+        1
+      );
+      await req.user.save();
+      return res.json({ message: 'success' });
+    } catch (e) {
+      return res
+        .json(500)
+        .json({ message: 'An error occurred while deleting the leaderboard' });
+    }
+  }
+);
+
 leaderboardRouter.get(
   '/:uid',
   validateRequest({
