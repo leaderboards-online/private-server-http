@@ -59,6 +59,29 @@ leaderboardRouter.get('/', AuthMiddleware, UserMiddleware, async (req, res) => {
   }
 });
 
+leaderboardRouter.get(
+  '/preview/:uid',
+  validateRequest({ params: z.object({ uid: z.string() }) }),
+  async (req, res) => {
+    try {
+      const leaderboard = await Leaderboard.findOne({
+        uid: req.params.uid,
+      })
+        .populate({
+          path: 'participants',
+          options: { sort: { points: -1 }, lean: true },
+        })
+        .exec();
+      console.log({ leaderboard });
+      return res.json({ leaderboard, message: 'success' });
+    } catch (e) {
+      return res
+        .status(500)
+        .json({ message: 'An Error occured while fetching the preview' });
+    }
+  }
+);
+
 leaderboardRouter.delete(
   '/:leaderboardId',
   AuthMiddleware,
