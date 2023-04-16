@@ -1,4 +1,7 @@
 import { config } from 'dotenv';
+if (process.env.node_env === 'docker') {
+  config({ path: '/etc/secrets/.env' });
+}
 config({ path: './src/.env' });
 export const {
   PORT,

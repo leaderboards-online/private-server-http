@@ -7,12 +7,11 @@ COPY package*.json ./
 RUN yarn
 
 COPY . .
-
-ENV PORT $PORT
+ARG node_env=docker
+ENV node_env $node_env
 
 RUN yarn build
 
 EXPOSE $PORT
 
-RUN --mount=type=secret,id=_env,dst=/etc/secrets/.env export $( grep -vE "^(#.*|\s*)$" /etc/secrets/.env )
 CMD ["yarn", "start"]
