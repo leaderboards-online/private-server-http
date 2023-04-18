@@ -8,6 +8,7 @@ const LeaderboardMiddleware: Handler = async (req, res, next) => {
     if (!leaderboard) {
       return res.status(404).json({ message: 'leaderboard not found' });
     }
+    console.log(leaderboard.creator, req.user.id);
 
     if (String(leaderboard.creator) !== req.user.id) {
       return res

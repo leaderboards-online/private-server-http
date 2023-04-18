@@ -16,11 +16,12 @@ userRouter.post(
   async (req, res) => {
     try {
       const sub = req.auth?.payload.sub as string;
-      const user = await (
-        await UserService.getBySub(sub)
-      )?.populate('leaderboards');
+      const user = await UserService.getBySub(sub);
       if (user) {
-        return res.status(200).json({ message: 'success', user });
+        return res.status(200).json({
+          message: 'success',
+          user: await user.populate('leaderboards'),
+        });
       }
       const { email, username, avatar } = req.body;
       const newUser = await UserService.createUser({

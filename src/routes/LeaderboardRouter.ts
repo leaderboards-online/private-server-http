@@ -2,23 +2,23 @@ import { Router } from 'express';
 import UserMiddleware from '../middlewares/UserMiddleware';
 import { validateRequest } from 'zod-express-middleware';
 import { z } from 'zod';
-import LeaderboardService from '../services/Leaderboard';
 import Leaderboard from '../models/Leaderboard';
 import Participant from '../models/Participant';
 import AuthMiddleware from '../middlewares/AuthMiddleware';
 import LeaderboardMiddleware from '../middlewares/LeaderboardMiddleware';
+import { randomUUID } from 'crypto';
 
 const leaderboardRouter = Router();
 
 leaderboardRouter.post(
   '/',
   AuthMiddleware,
+  UserMiddleware,
   validateRequest({
     body: z.object({
       name: z.string().min(1),
     }),
   }),
-  UserMiddleware,
   async (req, res) => {
     try {
       const user = req.user;
@@ -28,16 +28,17 @@ leaderboardRouter.post(
         });
       }
       const leaderboard = new Leaderboard({
-        creator: user._id,
+        creator: user.id,
         name: req.body.name,
         participants: [],
+        uid: randomUUID(),
       });
       const particpants = await Participant.create([
-        { name: 'Arth', leaderboard: leaderboard._id, points: 0 },
+        { name: 'Arth', leaderboard: leaderboard.id, points: 0 },
       ]);
       leaderboard.participants = particpants;
       await leaderboard.save();
-      user.leaderboards.push(leaderboard);
+      user.leaderboards.push(leaderboard.id);
       await user.save();
       return res.status(201).json({ message: 'success', leaderboard });
     } catch (e) {
@@ -50,7 +51,11 @@ leaderboardRouter.post(
 
 leaderboardRouter.get('/', AuthMiddleware, UserMiddleware, async (req, res) => {
   try {
-    const leaderboards = await Leaderboard.find({ creator: req.user.id });
+    const leaderboards = await Leaderboard.find({
+      _id: {
+        $in: req.user.leaderboards,
+      },
+    });
     return res.json({ message: 'success', leaderboards });
   } catch (e) {
     return res
@@ -72,7 +77,6 @@ leaderboardRouter.get(
           options: { sort: { points: -1 }, lean: true },
         })
         .exec();
-      console.log({ leaderboard });
       return res.json({ leaderboard, message: 'success' });
     } catch (e) {
       return res
@@ -106,18 +110,16 @@ leaderboardRouter.delete(
 );
 
 leaderboardRouter.get(
-  '/:uid',
+  '/:leaderboardId',
+  AuthMiddleware,
+  UserMiddleware,
   validateRequest({
-    params: z.object({ uid: z.string() }),
+    params: z.object({ leaderboardId: z.string() }),
   }),
+  LeaderboardMiddleware,
   async (req, res) => {
     try {
-      const leaderboardUid = req.params.uid;
-      const leaderboard = await LeaderboardService.findByUid(leaderboardUid);
-      if (!leaderboard) {
-        return res.status(404).json({ message: 'leaderboard not found' });
-      }
-      res.json({ leaderboard, message: 'success' });
+      res.json({ leaderboard: req.leaderboard, message: 'success' });
     } catch (e) {
       return res
         .status(500)

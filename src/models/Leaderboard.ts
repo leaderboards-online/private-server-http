@@ -4,7 +4,6 @@ import {
   PARTICIPANT_MODEL_NAME,
   USER_MODEL_NAME,
 } from './constants';
-import { randomUUID } from 'crypto';
 import Participant from './Participant';
 import { ChangeStreamDocument } from 'mongodb';
 
@@ -12,7 +11,7 @@ type Leaderboard = {
   _id?: string;
   creator: Schema.Types.ObjectId;
   name: string;
-  uid?: string;
+  uid: string;
   participants: Participant[];
 };
 
@@ -23,7 +22,7 @@ export const leaderboardSchema = new Schema<Leaderboard>({
     ref: USER_MODEL_NAME,
   },
   name: { type: String, required: true },
-  uid: { type: String, default: randomUUID() },
+  uid: { type: String, unique: true, required: true },
   participants: [{ type: Schema.Types.ObjectId, ref: PARTICIPANT_MODEL_NAME }],
 });
 

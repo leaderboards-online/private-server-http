@@ -4,6 +4,7 @@ import UserService from '../services/User';
 const UserMiddleware: Handler = async (req, res, next) => {
   try {
     const sub = req.auth?.payload.sub as string;
+    console.log({ sub });
     const user = await UserService.getBySub(sub);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
