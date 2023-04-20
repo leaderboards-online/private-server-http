@@ -6,6 +6,7 @@ type Participant = {
   name: string;
   points: number;
   leaderboard: Schema.Types.ObjectId;
+  avatar: string;
 };
 
 const participantSchema = new Schema<Participant>({
@@ -19,6 +20,7 @@ const participantSchema = new Schema<Participant>({
     type: Number,
     default: 0,
   },
+  avatar: { required: true, type: String },
 });
 
 const Participant = model(PARTICIPANT_MODEL_NAME, participantSchema);

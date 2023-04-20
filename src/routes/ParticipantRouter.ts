@@ -17,6 +17,7 @@ participantRouter.post(
     body: z.object({
       name: z.string(),
       points: z.number(),
+      avatar: z.string(),
     }),
     params: z.object({ leaderboardId: z.string() }),
   }),
@@ -29,8 +30,9 @@ participantRouter.post(
           message: 'limit of 20 participants per board for the alpha ;)',
         });
       }
-      const { name, points } = req.body;
+      const { name, points, avatar } = req.body;
       const newParticpant = await Participant.create({
+        avatar,
         leaderboard: leaderboard._id,
         name,
         points,

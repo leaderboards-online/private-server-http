@@ -27,6 +27,7 @@ leaderboardRouter.post(
           message: 'cannot create more than one leaderboard in the alpha',
         });
       }
+
       const leaderboard = new Leaderboard({
         creator: user.id,
         name: req.body.name,
