@@ -7,6 +7,7 @@ import Participant from '../models/Participant';
 import AuthMiddleware from '../middlewares/AuthMiddleware';
 import LeaderboardMiddleware from '../middlewares/LeaderboardMiddleware';
 import { randomUUID } from 'crypto';
+import { connection, startSession } from 'mongoose';
 
 const leaderboardRouter = Router();
 
@@ -27,21 +28,26 @@ leaderboardRouter.post(
           message: 'cannot create more than one leaderboard in the alpha',
         });
       }
-
-      const leaderboard = new Leaderboard({
-        creator: user.id,
-        name: req.body.name,
-        participants: [],
-        uid: randomUUID(),
-      });
-      const particpants = await Participant.create([
-        { name: 'Arth', leaderboard: leaderboard.id, points: 0 },
-      ]);
-      leaderboard.participants = particpants;
-      await leaderboard.save();
-      user.leaderboards.push(leaderboard.id);
-      await user.save();
-      return res.status(201).json({ message: 'success', leaderboard });
+      const session = await startSession();
+      session.startTransaction();
+      try {
+        const leaderboard = new Leaderboard({
+          creator: user.id,
+          name: req.body.name,
+          participants: [],
+          uid: randomUUID(),
+        });
+        await leaderboard.save({ session });
+        user.leaderboards.push(leaderboard.id);
+        await user.save({ session });
+        await session.commitTransaction();
+        session.endSession();
+        return res.status(201).json({ message: 'success', leaderboard });
+      } catch (e) {
+        console.log({ e });
+        await session.abortTransaction();
+        session.endSession();
+      }
     } catch (e) {
       return res
         .status(500)
