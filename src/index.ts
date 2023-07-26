@@ -19,6 +19,7 @@ connect(MONGO_URI)
   .then(async () => {
     app.listen(PORT, () => {
       console.log(`Server listening at ${PORT}`);
+      console.log({CLIENT_ORIGIN_URL});
     });
   })
   .catch((err) => {
