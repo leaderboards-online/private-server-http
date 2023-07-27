@@ -9,7 +9,7 @@ import { connect } from 'mongoose';
 
 const app = express();
 app.use(morgan('short'));
-app.use(cors({ origin: CLIENT_ORIGIN_URL }));
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.get('/health', (req, res) => {
   return res.json({ message: 'epic' });
